@@ -1,0 +1,109 @@
+.results-display {
+  background: white;
+  padding: 2rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  margin-bottom: 2rem;
+}
+
+.results-header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.results-header h2 {
+  margin-top: 0;
+  color: #333;
+  font-size: 1.8rem;
+}
+
+.primary-message {
+  font-size: 1.2rem;
+  color: #555;
+  margin: 1rem 0;
+}
+
+.primary-message .highlight {
+  color: #4CAF50;
+  font-size: 1.4rem;
+}
+
+.results-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.result-card {
+  background: #f9f9f9;
+  padding: 1.5rem;
+  border-radius: 8px;
+  text-align: center;
+  border: 2px solid #eee;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.result-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.result-label {
+  font-size: 0.9rem;
+  color: #666;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+}
+
+.result-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #333;
+}
+
+.result-value.highlight {
+  color: #2196F3;
+}
+
+.result-value.success {
+  color: #4CAF50;
+}
+
+.results-note {
+  text-align: center;
+  padding: 1rem;
+  background: #f0f8ff;
+  border-radius: 4px;
+  font-size: 0.95rem;
+  color: #555;
+}
+
+.results-note p {
+  margin: 0;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .results-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .result-value {
+    font-size: 1.2rem;
+  }
+
+  .primary-message .highlight {
+    font-size: 1.2rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .results-display {
+    padding: 1.5rem;
+  }
+
+  .results-grid {
+    grid-template-columns: 1fr;
+  }
+}
