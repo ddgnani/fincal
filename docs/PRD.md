@@ -745,13 +745,15 @@ git push
 Features to be added in subsequent iterations:
 
 1. **Goal-Based Planning** (reverse calculation: "I need $X, how much to invest?")
-3. **Comparison Tool** (compare multiple scenarios side-by-side)
-4. **Inflation Adjustment** (real returns vs nominal returns)
-5. **User Authentication & Saved Calculations**
-6. **Export to PDF/Excel**
-7. **Historical Data Integration** (actual market returns)
-8. **Mobile App** (React Native)
-10. **Tax Calculations** (capital gains, tax-adjusted returns)
+2. **Comparison Tool** (compare multiple scenarios side-by-side)
+3. **User Authentication & Saved Calculations**
+4. **Export to PDF/Excel**
+5. **Historical Data Integration** (actual market returns)
+6. **Mobile App** (React Native)
+7. **Tax Calculations** (capital gains, tax-adjusted returns)
+
+**In Progress / Planned:**
+- **Money Journey Calculator** — Full lifecycle accumulation + withdrawal calculator (see Section 10)
 
 ---
 
@@ -884,7 +886,265 @@ class handler(BaseHTTPRequestHandler):
 
 ---
 
-## 9. Notes & Assumptions
+## 10. Feature 2: Money Journey (Accumulation + Withdrawal Lifecycle)
+
+### 10.1 Feature Description
+A full lifecycle investment calculator that models two phases:
+1. **Accumulation Phase** — The user builds a corpus through systematic monthly investments (reuses the existing SIP calculator logic, including step-up and initial investment).
+2. **Withdrawal Phase** — The user draws down from the corpus with systematic monthly withdrawals while the remaining balance continues to compound at a (potentially different) return rate.
+
+This feature appears as a **new tab** alongside the existing SIP Calculator.
+
+### 10.2 User Inputs
+
+#### Accumulation Phase Inputs
+Identical to the SIP Calculator (Section 2.2):
+
+| Input Field | Description | Data Type | Validation |
+|------------|-------------|-----------|------------|
+| Initial Investment Amount | One-time lump sum invested at the start | Number (decimal) | Must be >= 0, optional (default 0) |
+| Monthly Investment Amount | Fixed amount to invest each month | Number (decimal) | Must be > 0 |
+| Accumulation Period | Investment duration in years | Number (integer) | Must be > 0, typically 1-50 years |
+| Expected Annual Return Rate | Expected annual interest rate (%) during accumulation | Number (decimal) | Must be >= 0, typically 1-30% |
+| Annual Step-Up Rate | Percentage increase in monthly contribution each year | Number (decimal) | Must be >= 0, optional (default 0) |
+| Step-Up Contribution Cap | Maximum monthly contribution amount after step-ups | Number (decimal) | Must be > 0, optional (no cap if omitted) |
+
+#### Withdrawal Phase Inputs
+
+| Input Field | Description | Data Type | Validation |
+|------------|-------------|-----------|------------|
+| Monthly Withdrawal Amount | Fixed amount to withdraw each month | Number (decimal) | Must be > 0 |
+| Withdrawal Period | Duration of withdrawals in years | Number (integer) | Must be > 0, typically 1-40 years |
+| Withdrawal Return Rate | Annual return rate (%) on remaining balance during withdrawal | Number (decimal) | Must be >= 0; **pre-filled from accumulation return rate**, independently editable |
+| Annual Withdrawal Step-Up Rate | Percentage change in monthly withdrawal each year | Number (decimal) | Can be **positive or negative** (e.g., +5% for inflation adjustment, -3% for decreasing spending), optional (default 0) |
+| Withdrawal Step-Up Cap | Maximum monthly withdrawal amount after step-ups | Number (decimal) | Must be > 0, optional (no cap if omitted) |
+
+**Note**: Withdrawal step-up rate allows negative values to model decreasing spending over time.
+
+### 10.3 Calculation Logic
+
+#### Accumulation Phase
+Reuses the existing `calculate_sip_with_annual_compounding` function from `api/services/sip_calculator.py`. The final `future_value` from the accumulation phase becomes the **opening balance** of the withdrawal phase.
+
+#### Withdrawal Phase
+Year-by-year calculation:
+
+```
+For Year 1 of withdrawal (overall Year = accumulation_years + 1):
+  monthly_withdrawal = W  (the base monthly withdrawal)
+  annual_withdrawal = W × 12
+  opening_balance = corpus from accumulation phase
+  closing_balance = (opening_balance - annual_withdrawal) × (1 + withdrawal_rate)
+
+For Year Y of withdrawal (Y > 1):
+  monthly_withdrawal = min(
+    previous_year_withdrawal × (1 + withdrawal_step_up_rate),
+    withdrawal_step_up_cap   // if cap is provided
+  )
+  annual_withdrawal = monthly_withdrawal × 12
+  opening_balance = previous year's closing_balance
+  closing_balance = (opening_balance - annual_withdrawal) × (1 + withdrawal_rate)
+```
+
+**Assumptions:**
+- All 12 monthly withdrawals in a year are treated as taken at the beginning of the year
+- The remaining balance after withdrawals compounds once per year at year-end
+- Mirrors the accumulation phase convention (investments at start of year, compounding at end)
+
+**Depletion Detection:**
+- If `opening_balance - annual_withdrawal < 0` at any point, the balance is depleted
+- Record the **depletion year** and remaining partial withdrawal possible
+- Stop calculation at depletion; set closing balance to 0
+
+**Additional Calculations:**
+- Total Contributions (accumulation) = Initial Investment + Σ (monthly_contribution_year_i × 12)
+- Total Withdrawals = Σ (annual_withdrawal_year_j) across all withdrawal years (or until depletion)
+- Final Balance = closing balance at end of withdrawal period (0 if depleted)
+- Total Returns = Final Balance + Total Withdrawals - Total Contributions
+
+### 10.4 Output Display
+
+#### 10.4.1 Results Summary
+Display prominently at the top:
+- **Corpus at Retirement**: ${corpus} (end of accumulation phase)
+- **Total Contributions**: ${total_contributions}
+- **Total Withdrawals**: ${total_withdrawals}
+- **Final Remaining Balance**: ${final_balance}
+- **Depletion Warning** (conditional): "⚠ Your balance is projected to deplete in Year {X} of withdrawal ({Y} years into the journey). Consider reducing withdrawals or extending the accumulation period."
+
+#### 10.4.2 Visual Graph
+A **single continuous line chart** showing the full lifecycle:
+
+**Chart Specifications:**
+- **Chart Type**: Single-line chart showing portfolio balance over time
+- **X-Axis**: Years (Year 1 through Year N, covering both phases)
+- **Y-Axis**: Portfolio balance amount (with proper formatting, e.g., $1,000,000)
+- **Line**: Portfolio balance over time — rises during accumulation, falls during withdrawal
+- **Transition Marker**: A vertical `ReferenceLine` (Recharts) at the boundary between accumulation and withdrawal phases, labeled "Retirement" or "Withdrawal Begins"
+- **Data Points**: Show dots on the line for each year
+- **Hover/Tooltip**: Display year, phase ("Accumulation" or "Withdrawal"), and balance
+- **Depletion Marker**: If balance depletes early, mark the depletion point on the chart
+
+#### 10.4.3 Year-by-Year Breakdown Table (Optional)
+A detailed table with columns:
+- Year number (continuous across both phases)
+- Phase ("Accumulation" or "Withdrawal")
+- Monthly contribution/withdrawal for that year
+- Amount invested or withdrawn that year
+- Portfolio balance at end of year
+
+### 10.5 API Endpoint
+
+#### Endpoint: Calculate Money Journey
+- **URL**: `/api/calculate-money-journey`
+- **Method**: `POST`
+- **Content-Type**: `application/json`
+
+**Request Body:**
+```json
+{
+  "initial_investment": 0,
+  "monthly_investment": 5000,
+  "accumulation_years": 25,
+  "accumulation_return_rate": 12.0,
+  "annual_step_up_rate": 5.0,
+  "step_up_cap": 15000,
+  "monthly_withdrawal": 50000,
+  "withdrawal_years": 20,
+  "withdrawal_return_rate": 8.0,
+  "withdrawal_step_up_rate": 5.0,
+  "withdrawal_step_up_cap": null
+}
+```
+
+**Response (Success - 200 OK):**
+```json
+{
+  "status": "success",
+  "inputs": {
+    "initial_investment": 0,
+    "monthly_investment": 5000,
+    "accumulation_years": 25,
+    "accumulation_return_rate": 12.0,
+    "annual_step_up_rate": 5.0,
+    "step_up_cap": 15000,
+    "monthly_withdrawal": 50000,
+    "withdrawal_years": 20,
+    "withdrawal_return_rate": 8.0,
+    "withdrawal_step_up_rate": 5.0,
+    "withdrawal_step_up_cap": null
+  },
+  "results": {
+    "corpus_at_retirement": 8945678.90,
+    "total_contributions": 2400000,
+    "total_withdrawals": 15600000,
+    "final_balance": 1234567.89,
+    "depleted": false,
+    "depletion_year": null
+  },
+  "yearly_breakdown": [
+    {
+      "year": 1,
+      "phase": "accumulation",
+      "monthly_amount": 5000,
+      "annual_amount": 60000,
+      "balance": 67200.00
+    },
+    {
+      "year": 26,
+      "phase": "withdrawal",
+      "monthly_amount": 50000,
+      "annual_amount": 600000,
+      "balance": 8612345.67
+    }
+  ]
+}
+```
+
+**Note**: Values are illustrative. Actual calculation depends on the formula implemented.
+
+**Response (Error - 400 Bad Request):**
+```json
+{
+  "status": "error",
+  "message": "Validation error",
+  "errors": [
+    {
+      "field": "monthly_withdrawal",
+      "message": "Must be greater than 0"
+    }
+  ]
+}
+```
+
+### 10.6 Backend Validation (Pydantic Models)
+
+```python
+class MoneyJourneyRequest(BaseModel):
+    # Accumulation phase (reuses SIP fields)
+    initial_investment: float = Field(ge=0, default=0)
+    monthly_investment: float = Field(gt=0)
+    accumulation_years: int = Field(gt=0, le=50)
+    accumulation_return_rate: float = Field(ge=0, le=100)
+    annual_step_up_rate: float = Field(ge=0, default=0)
+    step_up_cap: Optional[float] = Field(gt=0, default=None)
+    # Withdrawal phase
+    monthly_withdrawal: float = Field(gt=0)
+    withdrawal_years: int = Field(gt=0, le=50)
+    withdrawal_return_rate: float = Field(ge=0, le=100)
+    withdrawal_step_up_rate: float = Field(ge=-50, le=100, default=0)
+    withdrawal_step_up_cap: Optional[float] = Field(gt=0, default=None)
+
+class MoneyJourneyYearBreakdown(BaseModel):
+    year: int
+    phase: str  # "accumulation" or "withdrawal"
+    monthly_amount: float
+    annual_amount: float
+    balance: float
+
+class MoneyJourneyResponse(BaseModel):
+    status: str
+    inputs: dict
+    results: dict
+    yearly_breakdown: list[MoneyJourneyYearBreakdown]
+```
+
+### 10.7 User Flow
+1. User navigates to the **Money Journey** tab
+2. User fills in **Accumulation Phase** inputs (same fields as SIP Calculator)
+3. User fills in **Withdrawal Phase** inputs (monthly withdrawal, period, return rate, optional step-up)
+4. The **Withdrawal Return Rate** is pre-filled from the accumulation return rate but can be edited independently
+5. User clicks "Calculate Journey"
+6. App displays:
+   - Results summary (corpus, contributions, withdrawals, final balance)
+   - Depletion warning if balance runs out early
+   - Single continuous chart with transition marker
+7. User can modify inputs and recalculate
+
+### 10.8 New Files & Changes
+
+**New Backend Files:**
+- `api/services/money_journey.py` — Withdrawal phase logic + orchestration of accumulation → withdrawal
+- `api/models/money_journey.py` — Pydantic models (MoneyJourneyRequest, MoneyJourneyResponse, MoneyJourneyYearBreakdown)
+- `api/calculate_money_journey.py` — Vercel serverless function handler
+- `tests/test_money_journey.py` — Unit tests for withdrawal logic, depletion detection, step-up with negative rates
+
+**New Frontend Files:**
+- `src/components/MoneyJourney/MoneyJourney.jsx` — Main Money Journey component
+- `src/components/MoneyJourney/AccumulationForm.jsx` — Accumulation phase input form
+- `src/components/MoneyJourney/WithdrawalForm.jsx` — Withdrawal phase input form
+- `src/components/MoneyJourney/JourneyResultsDisplay.jsx` — Results summary with depletion warning
+- `src/components/MoneyJourney/JourneyChart.jsx` — Continuous lifecycle chart with ReferenceLine transition marker
+
+**Modified Files:**
+- `src/App.jsx` — Add `useState` tab toggle for SIP Calculator / Money Journey navigation
+- `src/services/api.js` — Add `calculateMoneyJourney()` function calling `/api/calculate-money-journey`
+- `api/main.py` — Add `/api/calculate-money-journey` POST endpoint for local development
+- `vercel.json` — Add rewrite rule for `/api/calculate-money-journey` (if needed)
+
+---
+
+## 11. Notes & Assumptions
 
 - Currency is displayed in USD with $ symbol
 - **Compounding**: Annual compounding (interest calculated once per year)
@@ -898,11 +1158,12 @@ class handler(BaseHTTPRequestHandler):
 
 ---
 
-**Document Version**: 1.5
-**Last Updated**: 2026-02-12
+**Document Version**: 1.6
+**Last Updated**: 2026-02-13
 **Status**: All Phases Complete - Deployed to Production
 
 ### Changelog:
+- v1.6: Added Section 10 — Money Journey feature (accumulation + withdrawal lifecycle calculator); Updated future features list; Renumbered Notes & Assumptions to Section 11
 - v1.5: Marked Step-Up SIP and USD formatting as implemented and deployed to production
 - v1.4: Added Step-Up SIP feature (annual contribution increase with optional cap); Updated Sections 2.2, 2.3, 3.3, 3.4, 9; Removed Step-Up SIP from future features; Added USD formatting note
 - v1.3: Added optional initial investment amount (lump sum at time 0); Updated formula, API spec, validation, and user flow; Removed "Lump Sum Investment Calculator" from future features
