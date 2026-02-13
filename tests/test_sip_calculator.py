@@ -209,6 +209,96 @@ class TestSIPCalculator:
         assert result.inputs["annual_return_rate"] == 14.5
         assert result.inputs["compounding_frequency"] == "annually"
 
+    def test_initial_investment_basic(self):
+        """Test initial investment compounds correctly over the full period"""
+        request = SIPCalculationRequest(
+            monthly_investment=5000,
+            time_period_years=3,
+            annual_return_rate=10.0,
+            initial_investment=100000
+        )
+
+        result = calculate_sip_with_annual_compounding(request)
+
+        # Total invested = 100000 + 5000 * 12 * 3 = 280000
+        assert result.results.total_invested == 280000
+
+        # Year 3 future value:
+        # Initial: 100000 * 1.1^3 = 133100
+        # SIP year 1: 60000 * 1.1^2 = 72600
+        # SIP year 2: 60000 * 1.1^1 = 66000
+        # SIP year 3: 60000 * 1.1^0 = 60000
+        # Total = 133100 + 72600 + 66000 + 60000 = 331700
+        assert abs(result.results.future_value - 331700) < 1
+
+    def test_initial_investment_zero(self):
+        """Test that default 0 initial investment produces same results as before"""
+        request_without = SIPCalculationRequest(
+            monthly_investment=5000,
+            time_period_years=10,
+            annual_return_rate=12.0
+        )
+        request_with_zero = SIPCalculationRequest(
+            monthly_investment=5000,
+            time_period_years=10,
+            annual_return_rate=12.0,
+            initial_investment=0
+        )
+
+        result_without = calculate_sip_with_annual_compounding(request_without)
+        result_with_zero = calculate_sip_with_annual_compounding(request_with_zero)
+
+        assert result_without.results.future_value == result_with_zero.results.future_value
+        assert result_without.results.total_invested == result_with_zero.results.total_invested
+
+    def test_initial_investment_only(self):
+        """Test initial investment with minimal monthly contribution"""
+        request = SIPCalculationRequest(
+            monthly_investment=0.01,
+            time_period_years=5,
+            annual_return_rate=10.0,
+            initial_investment=100000
+        )
+
+        result = calculate_sip_with_annual_compounding(request)
+
+        # Initial investment should dominate: 100000 * 1.1^5 = 161051.00
+        # Monthly contributions are negligible (0.01 * 12 * 5 = 0.60)
+        assert result.results.future_value > 161050
+        assert result.results.total_invested == 100000 + 0.01 * 12 * 5
+
+    def test_initial_investment_in_yearly_breakdown(self):
+        """Test that year 1 includes initial investment in invested_this_year and cumulative_invested"""
+        request = SIPCalculationRequest(
+            monthly_investment=1000,
+            time_period_years=3,
+            annual_return_rate=10.0,
+            initial_investment=50000
+        )
+
+        result = calculate_sip_with_annual_compounding(request)
+
+        year1 = result.yearly_breakdown[0]
+        assert year1.invested_this_year == 50000 + 1000 * 12  # initial + monthly
+        assert year1.cumulative_invested == 50000 + 1000 * 12
+
+        year2 = result.yearly_breakdown[1]
+        assert year2.invested_this_year == 1000 * 12  # only monthly
+        assert year2.cumulative_invested == 50000 + 1000 * 12 * 2
+
+    def test_initial_investment_in_inputs(self):
+        """Test that the response echoes back the initial investment"""
+        request = SIPCalculationRequest(
+            monthly_investment=5000,
+            time_period_years=10,
+            annual_return_rate=12.0,
+            initial_investment=25000
+        )
+
+        result = calculate_sip_with_annual_compounding(request)
+
+        assert result.inputs["initial_investment"] == 25000
+
     def test_returns_calculation(self):
         """Test that returns are calculated correctly"""
         request = SIPCalculationRequest(

@@ -21,13 +21,19 @@ class SIPCalculationRequest(BaseModel):
         le=100,
         description="Expected annual return rate in percentage (0-100)"
     )
+    initial_investment: float = Field(
+        ge=0,
+        default=0,
+        description="One-time initial investment amount (optional, default 0)"
+    )
 
     class Config:
         json_schema_extra = {
             "example": {
                 "monthly_investment": 5000,
                 "time_period_years": 10,
-                "annual_return_rate": 12.0
+                "annual_return_rate": 12.0,
+                "initial_investment": 0
             }
         }
 

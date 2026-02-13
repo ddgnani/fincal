@@ -56,6 +56,12 @@
   margin-top: 0.25rem;
 }
 
+.optional-label {
+  font-weight: 400;
+  font-size: 0.8rem;
+  color: #999;
+}
+
 .calculate-button {
   width: 100%;
   padding: 1rem;

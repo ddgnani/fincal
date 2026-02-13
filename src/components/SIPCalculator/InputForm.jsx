@@ -8,6 +8,7 @@ const InputForm = ({ onCalculate, isLoading }) => {
     formState: { errors },
   } = useForm({
     defaultValues: {
+      initial_investment: 0,
       monthly_investment: 5000,
       time_period_years: 10,
       annual_return_rate: 12,
@@ -16,6 +17,7 @@ const InputForm = ({ onCalculate, isLoading }) => {
 
   const onSubmit = (data) => {
     onCalculate({
+      initial_investment: parseFloat(data.initial_investment),
       monthly_investment: parseFloat(data.monthly_investment),
       time_period_years: parseInt(data.time_period_years),
       annual_return_rate: parseFloat(data.annual_return_rate),
@@ -28,6 +30,24 @@ const InputForm = ({ onCalculate, isLoading }) => {
       <p className="form-description">
         Calculate the future value of your Systematic Investment Plan (SIP) with annual compounding.
       </p>
+
+      <div className="form-group">
+        <label htmlFor="initial_investment">
+          Initial Investment Amount ($) <span className="optional-label">Optional</span>
+        </label>
+        <input
+          id="initial_investment"
+          type="number"
+          step="0.01"
+          {...register('initial_investment', {
+            min: { value: 0, message: 'Must be 0 or greater' },
+          })}
+          className={errors.initial_investment ? 'error' : ''}
+        />
+        {errors.initial_investment && (
+          <span className="error-message">{errors.initial_investment.message}</span>
+        )}
+      </div>
 
       <div className="form-group">
         <label htmlFor="monthly_investment">

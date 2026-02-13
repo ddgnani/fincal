@@ -31,6 +31,7 @@ The calculator will accept the following parameters:
 
 | Input Field | Description | Data Type | Validation |
 |------------|-------------|-----------|------------|
+| Initial Investment Amount | One-time lump sum invested at the start | Number (decimal) | Must be >= 0, optional (default 0) |
 | Monthly Investment Amount | Fixed amount to invest each month | Number (decimal) | Must be > 0 |
 | Time Period | Investment duration in years | Number (integer) | Must be > 0, typically 1-50 years |
 | Expected Annual Return Rate | Expected annual interest rate (%) | Number (decimal) | Must be >= 0, typically 1-30% |
@@ -42,9 +43,10 @@ The calculator will accept the following parameters:
 **Core Formula:**
 - Future Value (FV) of SIP with annual compounding:
   ```
-  FV = P × 12 × [(1 + r)^n - 1] / r
+  FV = Initial × (1 + r)^n + P × 12 × [(1 + r)^n - 1] / r
 
   Where:
+  Initial = One-time initial investment (default 0)
   P = Monthly investment amount
   r = Annual interest rate (as decimal, e.g., 12% = 0.12)
   n = Number of years
@@ -62,7 +64,7 @@ For month-by-month accuracy with annual compounding:
 - Sum all individual future values
 
 **Additional Calculations:**
-- Total Amount Invested = Monthly Investment × 12 × Number of Years
+- Total Amount Invested = Initial Investment + Monthly Investment × 12 × Number of Years
 - Total Returns = Future Value - Total Amount Invested
 - Returns Percentage = (Total Returns / Total Invested) × 100
 
@@ -110,6 +112,7 @@ A detailed table showing:
 ### 2.5 User Flow
 1. User lands on the SIP calculator page
 2. User enters:
+   - Initial investment amount (optional)
    - Monthly investment amount
    - Time period (years)
    - Expected annual return rate (%)
@@ -205,7 +208,8 @@ A detailed table showing:
 {
   "monthly_investment": 5000,
   "time_period_years": 10,
-  "annual_return_rate": 12.0
+  "annual_return_rate": 12.0,
+  "initial_investment": 0
 }
 ```
 
@@ -217,6 +221,7 @@ A detailed table showing:
     "monthly_investment": 5000,
     "time_period_years": 10,
     "annual_return_rate": 12.0,
+    "initial_investment": 0,
     "compounding_frequency": "annually"
   },
   "results": {
@@ -279,6 +284,7 @@ class SIPCalculationRequest(BaseModel):
     monthly_investment: float = Field(gt=0, description="Monthly investment amount")
     time_period_years: int = Field(gt=0, le=50, description="Investment period in years")
     annual_return_rate: float = Field(ge=0, le=100, description="Expected annual return rate in percentage")
+    initial_investment: float = Field(ge=0, default=0, description="One-time initial investment amount")
 ```
 
 ### 3.5 Project Structure (Vercel Deployment)
@@ -703,8 +709,7 @@ git push
 
 Features to be added in subsequent iterations:
 
-1. **Lump Sum Investment Calculator**
-2. **Goal-Based Planning** (reverse calculation: "I need $X, how much to invest?")
+1. **Goal-Based Planning** (reverse calculation: "I need $X, how much to invest?")
 3. **Comparison Tool** (compare multiple scenarios side-by-side)
 4. **Inflation Adjustment** (real returns vs nominal returns)
 5. **User Authentication & Saved Calculations**
@@ -858,11 +863,12 @@ class handler(BaseHTTPRequestHandler):
 
 ---
 
-**Document Version**: 1.2
+**Document Version**: 1.3
 **Last Updated**: 2026-02-12
 **Status**: Ready for Development - Phase 1 (Backend Local Development)
 
 ### Changelog:
+- v1.3: Added optional initial investment amount (lump sum at time 0); Updated formula, API spec, validation, and user flow; Removed "Lump Sum Investment Calculator" from future features
 - v1.2: Added local-first development workflow; Split implementation into 4 phases (local backend, local frontend, local integration, GitHub + Vercel deployment); Added comprehensive local development setup section
 - v1.1: Updated compounding frequency to annual; Added Vercel deployment configuration
 - v1.0: Initial PRD creation
