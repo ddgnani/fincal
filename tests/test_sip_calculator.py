@@ -299,6 +299,78 @@ class TestSIPCalculator:
 
         assert result.inputs["initial_investment"] == 25000
 
+    def test_step_up_no_cap(self):
+        """Test step-up SIP with no cap — contributions grow each year"""
+        request = SIPCalculationRequest(
+            monthly_investment=5000,
+            time_period_years=3,
+            annual_return_rate=10.0,
+            annual_step_up_rate=10
+        )
+
+        result = calculate_sip_with_annual_compounding(request)
+
+        # Year 1: 5000, Year 2: 5500, Year 3: 6050
+        assert result.yearly_breakdown[0].monthly_contribution == 5000
+        assert result.yearly_breakdown[1].monthly_contribution == 5500
+        assert result.yearly_breakdown[2].monthly_contribution == 6050
+
+        # Total invested = 5000*12 + 5500*12 + 6050*12 = 60000 + 66000 + 72600 = 198600
+        assert result.results.total_invested == 198600
+
+    def test_step_up_with_cap(self):
+        """Test step-up SIP with cap — contribution capped from year 2"""
+        request = SIPCalculationRequest(
+            monthly_investment=5000,
+            time_period_years=3,
+            annual_return_rate=10.0,
+            annual_step_up_rate=20,
+            step_up_cap=5500
+        )
+
+        result = calculate_sip_with_annual_compounding(request)
+
+        # Year 1: 5000, Year 2: min(6000, 5500) = 5500, Year 3: min(6600, 5500) = 5500
+        assert result.yearly_breakdown[0].monthly_contribution == 5000
+        assert result.yearly_breakdown[1].monthly_contribution == 5500
+        assert result.yearly_breakdown[2].monthly_contribution == 5500
+
+    def test_zero_step_up_backward_compat(self):
+        """Test that step_up_rate=0 produces identical results to omitting it"""
+        request_without = SIPCalculationRequest(
+            monthly_investment=5000,
+            time_period_years=10,
+            annual_return_rate=12.0
+        )
+        request_with_zero = SIPCalculationRequest(
+            monthly_investment=5000,
+            time_period_years=10,
+            annual_return_rate=12.0,
+            annual_step_up_rate=0
+        )
+
+        result_without = calculate_sip_with_annual_compounding(request_without)
+        result_with_zero = calculate_sip_with_annual_compounding(request_with_zero)
+
+        assert result_without.results.future_value == result_with_zero.results.future_value
+        assert result_without.results.total_invested == result_with_zero.results.total_invested
+
+    def test_step_up_with_initial_investment(self):
+        """Test step-up SIP combined with initial investment"""
+        request = SIPCalculationRequest(
+            monthly_investment=5000,
+            time_period_years=3,
+            annual_return_rate=10.0,
+            initial_investment=100000,
+            annual_step_up_rate=10
+        )
+
+        result = calculate_sip_with_annual_compounding(request)
+
+        # Total invested = 100000 + 60000 + 66000 + 72600 = 298600
+        assert result.results.total_invested == 298600
+        assert result.results.future_value > result.results.total_invested
+
     def test_returns_calculation(self):
         """Test that returns are calculated correctly"""
         request = SIPCalculationRequest(

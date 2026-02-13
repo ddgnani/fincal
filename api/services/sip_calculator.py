@@ -29,19 +29,32 @@ def calculate_sip_with_annual_compounding(request: SIPCalculationRequest) -> SIP
     time_period_years = request.time_period_years
     annual_rate = request.annual_return_rate / 100  # Convert percentage to decimal
     initial_investment = request.initial_investment
+    annual_step_up_rate = request.annual_step_up_rate / 100  # Convert percentage to decimal
+    step_up_cap = request.step_up_cap
 
     # Initialize tracking variables
     yearly_breakdown = []
     total_invested = initial_investment
+    monthly_contributions = []  # Track per-year monthly contribution amounts
 
     # Calculate month-by-month for accuracy
     # Each monthly investment will compound based on complete years invested
     for year in range(1, time_period_years + 1):
+        # Determine current monthly contribution with step-up
+        if year == 1:
+            current_monthly = monthly_investment
+        else:
+            current_monthly = monthly_contributions[-1] * (1 + annual_step_up_rate)
+            if step_up_cap is not None:
+                current_monthly = min(current_monthly, step_up_cap)
+
+        monthly_contributions.append(current_monthly)
+
         # Amount invested this year (12 monthly investments + initial in year 1)
-        invested_this_year = monthly_investment * 12
+        invested_this_year = current_monthly * 12
         if year == 1:
             invested_this_year += initial_investment
-        total_invested += monthly_investment * 12
+        total_invested += current_monthly * 12
 
         # Calculate future value at end of this year
         # We need to consider all investments made up to this year
@@ -53,8 +66,8 @@ def calculate_sip_with_annual_compounding(request: SIPCalculationRequest) -> SIP
 
         # Go through each year and calculate the future value of those investments
         for inv_year in range(1, year + 1):
-            # 12 monthly investments in inv_year
-            year_investment = monthly_investment * 12
+            # 12 monthly investments in inv_year (using that year's contribution)
+            year_investment = monthly_contributions[inv_year - 1] * 12
 
             # How many complete years will this investment compound?
             years_to_compound = year - inv_year
@@ -73,7 +86,8 @@ def calculate_sip_with_annual_compounding(request: SIPCalculationRequest) -> SIP
             year=year,
             invested_this_year=round(invested_this_year, 2),
             cumulative_invested=round(total_invested, 2),
-            future_value=round(future_value, 2)
+            future_value=round(future_value, 2),
+            monthly_contribution=round(current_monthly, 2)
         ))
 
     # Final calculations
@@ -94,6 +108,8 @@ def calculate_sip_with_annual_compounding(request: SIPCalculationRequest) -> SIP
         "time_period_years": time_period_years,
         "annual_return_rate": request.annual_return_rate,
         "initial_investment": initial_investment,
+        "annual_step_up_rate": request.annual_step_up_rate,
+        "step_up_cap": step_up_cap,
         "compounding_frequency": "annually"
     }
 

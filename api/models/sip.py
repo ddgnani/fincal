@@ -1,7 +1,7 @@
 """
 Pydantic models for SIP calculator API
 """
-from typing import List
+from typing import List, Optional
 from pydantic import BaseModel, Field
 
 
@@ -26,6 +26,17 @@ class SIPCalculationRequest(BaseModel):
         default=0,
         description="One-time initial investment amount (optional, default 0)"
     )
+    annual_step_up_rate: float = Field(
+        ge=0,
+        le=100,
+        default=0,
+        description="Annual percentage increase in monthly contribution (0-100)"
+    )
+    step_up_cap: Optional[float] = Field(
+        gt=0,
+        default=None,
+        description="Maximum monthly contribution cap when using step-up (optional)"
+    )
 
     class Config:
         json_schema_extra = {
@@ -33,7 +44,9 @@ class SIPCalculationRequest(BaseModel):
                 "monthly_investment": 5000,
                 "time_period_years": 10,
                 "annual_return_rate": 12.0,
-                "initial_investment": 0
+                "initial_investment": 0,
+                "annual_step_up_rate": 10,
+                "step_up_cap": 15000
             }
         }
 
@@ -44,6 +57,7 @@ class YearlyBreakdown(BaseModel):
     invested_this_year: float = Field(description="Amount invested in this year")
     cumulative_invested: float = Field(description="Total amount invested up to this year")
     future_value: float = Field(description="Future value at the end of this year")
+    monthly_contribution: float = Field(description="Monthly contribution amount for this year")
 
 
 class SIPCalculationResults(BaseModel):
@@ -82,7 +96,8 @@ class SIPCalculationResponse(BaseModel):
                         "year": 1,
                         "invested_this_year": 60000,
                         "cumulative_invested": 60000,
-                        "future_value": 67200.00
+                        "future_value": 67200.00,
+                        "monthly_contribution": 5000
                     }
                 ]
             }

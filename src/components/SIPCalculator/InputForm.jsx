@@ -1,27 +1,37 @@
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
+import { formatInputValue, parseInputValue } from '../../utils/formatters';
 import './InputForm.css';
 
 const InputForm = ({ onCalculate, isLoading }) => {
   const {
     register,
     handleSubmit,
+    control,
     formState: { errors },
   } = useForm({
     defaultValues: {
-      initial_investment: 0,
-      monthly_investment: 5000,
+      initial_investment: '0',
+      monthly_investment: '5,000',
       time_period_years: 10,
       annual_return_rate: 12,
+      annual_step_up_rate: 0,
+      step_up_cap: '',
     },
   });
 
   const onSubmit = (data) => {
-    onCalculate({
-      initial_investment: parseFloat(data.initial_investment),
-      monthly_investment: parseFloat(data.monthly_investment),
+    const payload = {
+      initial_investment: parseInputValue(data.initial_investment),
+      monthly_investment: parseInputValue(data.monthly_investment),
       time_period_years: parseInt(data.time_period_years),
       annual_return_rate: parseFloat(data.annual_return_rate),
-    });
+      annual_step_up_rate: parseFloat(data.annual_step_up_rate) || 0,
+    };
+    const capValue = parseInputValue(data.step_up_cap);
+    if (capValue > 0) {
+      payload.step_up_cap = capValue;
+    }
+    onCalculate(payload);
   };
 
   return (
@@ -35,14 +45,23 @@ const InputForm = ({ onCalculate, isLoading }) => {
         <label htmlFor="initial_investment">
           Initial Investment Amount ($) <span className="optional-label">Optional</span>
         </label>
-        <input
-          id="initial_investment"
-          type="number"
-          step="0.01"
-          {...register('initial_investment', {
-            min: { value: 0, message: 'Must be 0 or greater' },
-          })}
-          className={errors.initial_investment ? 'error' : ''}
+        <Controller
+          name="initial_investment"
+          control={control}
+          rules={{
+            validate: (v) => parseInputValue(v) >= 0 || 'Must be 0 or greater',
+          }}
+          render={({ field }) => (
+            <input
+              id="initial_investment"
+              type="text"
+              inputMode="decimal"
+              value={field.value}
+              onChange={(e) => field.onChange(formatInputValue(e.target.value))}
+              onBlur={field.onBlur}
+              className={errors.initial_investment ? 'error' : ''}
+            />
+          )}
         />
         {errors.initial_investment && (
           <span className="error-message">{errors.initial_investment.message}</span>
@@ -53,15 +72,23 @@ const InputForm = ({ onCalculate, isLoading }) => {
         <label htmlFor="monthly_investment">
           Monthly Investment Amount ($)
         </label>
-        <input
-          id="monthly_investment"
-          type="number"
-          step="0.01"
-          {...register('monthly_investment', {
-            required: 'Monthly investment is required',
-            min: { value: 0.01, message: 'Must be greater than 0' },
-          })}
-          className={errors.monthly_investment ? 'error' : ''}
+        <Controller
+          name="monthly_investment"
+          control={control}
+          rules={{
+            validate: (v) => parseInputValue(v) > 0 || 'Must be greater than 0',
+          }}
+          render={({ field }) => (
+            <input
+              id="monthly_investment"
+              type="text"
+              inputMode="decimal"
+              value={field.value}
+              onChange={(e) => field.onChange(formatInputValue(e.target.value))}
+              onBlur={field.onBlur}
+              className={errors.monthly_investment ? 'error' : ''}
+            />
+          )}
         />
         {errors.monthly_investment && (
           <span className="error-message">{errors.monthly_investment.message}</span>
@@ -104,6 +131,53 @@ const InputForm = ({ onCalculate, isLoading }) => {
         />
         {errors.annual_return_rate && (
           <span className="error-message">{errors.annual_return_rate.message}</span>
+        )}
+      </div>
+
+      <div className="form-group">
+        <label htmlFor="annual_step_up_rate">
+          Annual Step-Up Rate (%) <span className="optional-label">Optional</span>
+        </label>
+        <input
+          id="annual_step_up_rate"
+          type="number"
+          step="0.1"
+          {...register('annual_step_up_rate', {
+            min: { value: 0, message: 'Must be 0 or greater' },
+            max: { value: 100, message: 'Must be 100% or less' },
+          })}
+          className={errors.annual_step_up_rate ? 'error' : ''}
+        />
+        {errors.annual_step_up_rate && (
+          <span className="error-message">{errors.annual_step_up_rate.message}</span>
+        )}
+      </div>
+
+      <div className="form-group">
+        <label htmlFor="step_up_cap">
+          Step-Up Cap ($) <span className="optional-label">Optional</span>
+        </label>
+        <Controller
+          name="step_up_cap"
+          control={control}
+          rules={{
+            validate: (v) => v === '' || parseInputValue(v) > 0 || 'Must be greater than 0',
+          }}
+          render={({ field }) => (
+            <input
+              id="step_up_cap"
+              type="text"
+              inputMode="decimal"
+              placeholder="No cap"
+              value={field.value}
+              onChange={(e) => field.onChange(formatInputValue(e.target.value))}
+              onBlur={field.onBlur}
+              className={errors.step_up_cap ? 'error' : ''}
+            />
+          )}
+        />
+        {errors.step_up_cap && (
+          <span className="error-message">{errors.step_up_cap.message}</span>
         )}
       </div>
 

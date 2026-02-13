@@ -21,6 +21,7 @@ const GrowthChart = ({ yearlyBreakdown, inputs }) => {
     year: `Year ${item.year}`,
     futureValue: item.future_value,
     totalInvested: item.cumulative_invested,
+    monthlyContribution: item.monthly_contribution,
   }));
 
   // Custom tooltip
@@ -38,6 +39,11 @@ const GrowthChart = ({ yearlyBreakdown, inputs }) => {
           <p className="tooltip-returns">
             Returns: <strong>{formatCurrency(payload[0].value - payload[1].value)}</strong>
           </p>
+          {inputs.annual_step_up_rate > 0 && (
+            <p className="tooltip-contribution">
+              Monthly Contribution: <strong>{formatCurrency(payload[0].payload.monthlyContribution)}</strong>
+            </p>
+          )}
         </div>
       );
     }
