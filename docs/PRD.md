@@ -35,8 +35,12 @@ The calculator will accept the following parameters:
 | Monthly Investment Amount | Fixed amount to invest each month | Number (decimal) | Must be > 0 |
 | Time Period | Investment duration in years | Number (integer) | Must be > 0, typically 1-50 years |
 | Expected Annual Return Rate | Expected annual interest rate (%) | Number (decimal) | Must be >= 0, typically 1-30% |
+| Annual Step-Up Rate | Percentage increase in monthly contribution each year | Number (decimal) | Must be >= 0, optional (default 0) |
+| Step-Up Contribution Cap | Maximum monthly contribution amount after step-ups | Number (decimal) | Must be > 0, optional (no cap if omitted) |
 
 **Note**: Compounding frequency is fixed to **annual** for this calculator.
+**Note**: Dollar amounts are displayed in USD format with comma separators (e.g., $1,234,567.89).
+**Note**: When Annual Step-Up Rate is 0 or omitted, the monthly contribution stays constant (original behavior). The Step-Up Contribution Cap is only relevant when a step-up rate is provided.
 
 ### 2.3 Calculation Logic
 
@@ -63,8 +67,30 @@ For month-by-month accuracy with annual compounding:
 - Each investment compounds based on how many complete years it stays invested
 - Sum all individual future values
 
+**Step-Up Contribution Logic:**
+
+When an annual step-up rate is provided, the monthly contribution increases at the start of each new year:
+
+```
+For Year 1:
+  monthly_contribution = P  (the original monthly investment)
+
+For Year Y (Y > 1):
+  monthly_contribution = min(
+    previous_year_monthly × (1 + step_up_rate),
+    step_up_cap   // if cap is provided
+  )
+```
+
+Year-by-year calculation with step-up:
+1. Year 1 uses the base monthly contribution `P`
+2. At the start of Year 2, monthly contribution increases by the step-up rate
+3. If a cap is set, the contribution never exceeds the cap amount
+4. Each year's invested amount = `monthly_contribution_for_that_year × 12`
+5. Compounding still occurs annually on the accumulated balance
+
 **Additional Calculations:**
-- Total Amount Invested = Initial Investment + Monthly Investment × 12 × Number of Years
+- Total Amount Invested = Initial Investment + Σ (monthly_contribution_year_i × 12) for each year
 - Total Returns = Future Value - Total Amount Invested
 - Returns Percentage = (Total Returns / Total Invested) × 100
 
@@ -209,7 +235,9 @@ A detailed table showing:
   "monthly_investment": 5000,
   "time_period_years": 10,
   "annual_return_rate": 12.0,
-  "initial_investment": 0
+  "initial_investment": 0,
+  "annual_step_up_rate": 10.0,
+  "step_up_cap": 15000
 }
 ```
 
@@ -222,6 +250,8 @@ A detailed table showing:
     "time_period_years": 10,
     "annual_return_rate": 12.0,
     "initial_investment": 0,
+    "annual_step_up_rate": 10.0,
+    "step_up_cap": 15000,
     "compounding_frequency": "annually"
   },
   "results": {
@@ -233,21 +263,24 @@ A detailed table showing:
   "yearly_breakdown": [
     {
       "year": 1,
+      "monthly_contribution": 5000,
       "invested_this_year": 60000,
       "cumulative_invested": 60000,
       "future_value": 67200.00
     },
     {
       "year": 2,
-      "invested_this_year": 60000,
-      "cumulative_invested": 120000,
-      "future_value": 142464.00
+      "monthly_contribution": 5500,
+      "invested_this_year": 66000,
+      "cumulative_invested": 126000,
+      "future_value": 149184.00
     },
     {
       "year": 3,
-      "invested_this_year": 60000,
-      "cumulative_invested": 180000,
-      "future_value": 226959.68
+      "monthly_contribution": 6050,
+      "invested_this_year": 72600,
+      "cumulative_invested": 198600,
+      "future_value": 248686.08
     }
     // ... continues for all years
   ]
@@ -285,6 +318,8 @@ class SIPCalculationRequest(BaseModel):
     time_period_years: int = Field(gt=0, le=50, description="Investment period in years")
     annual_return_rate: float = Field(ge=0, le=100, description="Expected annual return rate in percentage")
     initial_investment: float = Field(ge=0, default=0, description="One-time initial investment amount")
+    annual_step_up_rate: float = Field(ge=0, default=0, description="Annual percentage increase in monthly contribution")
+    step_up_cap: Optional[float] = Field(gt=0, default=None, description="Maximum monthly contribution after step-ups (no cap if omitted)")
 ```
 
 ### 3.5 Project Structure (Vercel Deployment)
@@ -716,7 +751,6 @@ Features to be added in subsequent iterations:
 6. **Export to PDF/Excel**
 7. **Historical Data Integration** (actual market returns)
 8. **Mobile App** (React Native)
-9. **Step-Up SIP** (increasing investment amount annually)
 10. **Tax Calculations** (capital gains, tax-adjusted returns)
 
 ---
@@ -860,14 +894,16 @@ class handler(BaseHTTPRequestHandler):
 - Graph shows year-by-year progression (not month-by-month)
 - No authentication means no user tracking/analytics in V1
 - **Deployment**: Entire app (frontend + backend) deployed on Vercel free tier
+- **Step-Up Timing**: Annual step-up increases take effect at the start of each new year (Year 2 onward). Year 1 always uses the base monthly contribution.
 
 ---
 
-**Document Version**: 1.3
+**Document Version**: 1.4
 **Last Updated**: 2026-02-12
 **Status**: Ready for Development - Phase 1 (Backend Local Development)
 
 ### Changelog:
+- v1.4: Added Step-Up SIP feature (annual contribution increase with optional cap); Updated Sections 2.2, 2.3, 3.3, 3.4, 9; Removed Step-Up SIP from future features; Added USD formatting note
 - v1.3: Added optional initial investment amount (lump sum at time 0); Updated formula, API spec, validation, and user flow; Removed "Lump Sum Investment Calculator" from future features
 - v1.2: Added local-first development workflow; Split implementation into 4 phases (local backend, local frontend, local integration, GitHub + Vercel deployment); Added comprehensive local development setup section
 - v1.1: Updated compounding frequency to annual; Added Vercel deployment configuration
