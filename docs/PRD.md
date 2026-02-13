@@ -898,11 +898,12 @@ class handler(BaseHTTPRequestHandler):
 
 ---
 
-**Document Version**: 1.4
+**Document Version**: 1.5
 **Last Updated**: 2026-02-12
-**Status**: Ready for Development - Phase 1 (Backend Local Development)
+**Status**: All Phases Complete - Deployed to Production
 
 ### Changelog:
+- v1.5: Marked Step-Up SIP and USD formatting as implemented and deployed to production
 - v1.4: Added Step-Up SIP feature (annual contribution increase with optional cap); Updated Sections 2.2, 2.3, 3.3, 3.4, 9; Removed Step-Up SIP from future features; Added USD formatting note
 - v1.3: Added optional initial investment amount (lump sum at time 0); Updated formula, API spec, validation, and user flow; Removed "Lump Sum Investment Calculator" from future features
 - v1.2: Added local-first development workflow; Split implementation into 4 phases (local backend, local frontend, local integration, GitHub + Vercel deployment); Added comprehensive local development setup section
