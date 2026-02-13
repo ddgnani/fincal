@@ -55,7 +55,7 @@ const WithdrawalForm = ({ register, control, errors, accumulationReturnRate }) =
 
       <div className="form-group">
         <label htmlFor="withdrawal_return_rate">
-          Withdrawal Return Rate (%)
+          Expected Annual Return Rate (%)
         </label>
         <input
           id="withdrawal_return_rate"

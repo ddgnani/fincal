@@ -36,9 +36,9 @@ const InputForm = ({ onCalculate, isLoading }) => {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="input-form">
-      <h2>SIP Calculator</h2>
+      <h2>Growth Calculator</h2>
       <p className="form-description">
-        Calculate the future value of your Systematic Investment Plan (SIP) with annual compounding.
+        Calculate the future value of your investments with annual compounding.
       </p>
 
       <div className="form-group">

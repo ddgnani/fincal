@@ -10,8 +10,7 @@ function App() {
     <div className="App">
       <div className="app-container">
         <header className="app-header">
-          <h1>Investment Growth Calculator</h1>
-          <p className="subtitle">Plan your financial future</p>
+          <h1>Money Planner</h1>
         </header>
 
         <div className="tab-navigation">
@@ -19,7 +18,7 @@ function App() {
             className={`tab-button ${activeTab === 'sip' ? 'active' : ''}`}
             onClick={() => setActiveTab('sip')}
           >
-            SIP Calculator
+            Growth Calculator
           </button>
           <button
             className={`tab-button ${activeTab === 'journey' ? 'active' : ''}`}
