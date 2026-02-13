@@ -1,0 +1,20 @@
+.withdrawal-form {
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.withdrawal-form legend {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #333;
+  padding: 0 0.5rem;
+}
+
+.field-hint {
+  display: block;
+  font-size: 0.8rem;
+  color: #999;
+  margin-top: 0.25rem;
+}

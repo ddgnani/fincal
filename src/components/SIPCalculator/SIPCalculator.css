@@ -1,30 +1,6 @@
-.sip-calculator {
-  min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  padding: 2rem 1rem;
-}
-
-.calculator-container {
+.sip-calculator .calculator-container {
   max-width: 1200px;
   margin: 0 auto;
-}
-
-.calculator-header {
-  text-align: center;
-  color: white;
-  margin-bottom: 3rem;
-}
-
-.calculator-header h1 {
-  font-size: 2.5rem;
-  margin: 0 0 0.5rem 0;
-  font-weight: 700;
-}
-
-.calculator-header .subtitle {
-  font-size: 1.1rem;
-  opacity: 0.9;
-  margin: 0;
 }
 
 .error-box {
@@ -39,33 +15,4 @@
 .error-box strong {
   display: block;
   margin-bottom: 0.25rem;
-}
-
-/* Responsive design */
-@media (max-width: 768px) {
-  .calculator-header h1 {
-    font-size: 2rem;
-  }
-
-  .calculator-header .subtitle {
-    font-size: 1rem;
-  }
-
-  .sip-calculator {
-    padding: 1.5rem 0.5rem;
-  }
-}
-
-@media (max-width: 480px) {
-  .calculator-header h1 {
-    font-size: 1.75rem;
-  }
-
-  .calculator-header .subtitle {
-    font-size: 0.95rem;
-  }
-
-  .sip-calculator {
-    padding: 1rem 0.5rem;
-  }
 }

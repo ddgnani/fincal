@@ -34,13 +34,6 @@ const SIPCalculator = () => {
   return (
     <div className="sip-calculator">
       <div className="calculator-container">
-        <header className="calculator-header">
-          <h1>Investment Growth Calculator</h1>
-          <p className="subtitle">
-            Plan your financial future with our SIP calculator
-          </p>
-        </header>
-
         <InputForm onCalculate={handleCalculate} isLoading={isLoading} />
 
         {error && (

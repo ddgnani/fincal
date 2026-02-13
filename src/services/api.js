@@ -13,6 +13,25 @@ const API_BASE_URL = import.meta.env.PROD
  * @param {number} data.annual_return_rate - Expected annual return rate (%)
  * @returns {Promise<Object>} Calculation results
  */
+export const calculateMoneyJourney = async (data) => {
+  try {
+    const response = await axios.post(`${API_BASE_URL}/calculate-money-journey`, data, {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+    return response.data;
+  } catch (error) {
+    if (error.response) {
+      throw new Error(error.response.data.message || 'Calculation failed');
+    } else if (error.request) {
+      throw new Error('Unable to connect to server. Please check if the backend is running.');
+    } else {
+      throw new Error('An unexpected error occurred');
+    }
+  }
+};
+
 export const calculateSIP = async (data) => {
   try {
     const response = await axios.post(`${API_BASE_URL}/calculate-sip`, data, {

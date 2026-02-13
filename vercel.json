@@ -6,6 +6,10 @@
     {
       "source": "/api/calculate-sip",
       "destination": "/api/calculate_sip"
+    },
+    {
+      "source": "/api/calculate-money-journey",
+      "destination": "/api/calculate_money_journey"
     }
   ]
 }

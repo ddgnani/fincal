@@ -10,7 +10,12 @@ from api.models.sip import (
     SIPCalculationResponse,
     ErrorResponse
 )
+from api.models.money_journey import (
+    MoneyJourneyRequest,
+    MoneyJourneyResponse,
+)
 from api.services.sip_calculator import calculate_sip_with_annual_compounding
+from api.services.money_journey import calculate_money_journey as compute_money_journey
 
 # Initialize FastAPI app
 app = FastAPI(
@@ -43,7 +48,8 @@ def read_root():
         "message": "Investment Growth Calculator API",
         "version": "1.0.0",
         "endpoints": {
-            "calculate_sip": "/api/calculate-sip"
+            "calculate_sip": "/api/calculate-sip",
+            "calculate_money_journey": "/api/calculate-money-journey"
         }
     }
 
@@ -113,6 +119,60 @@ def calculate_sip(request: SIPCalculationRequest):
 
     except Exception as e:
         # Handle unexpected errors
+        raise HTTPException(
+            status_code=500,
+            detail={
+                "status": "error",
+                "message": f"Internal server error: {str(e)}",
+                "errors": []
+            }
+        )
+
+
+@app.post(
+    "/api/calculate-money-journey",
+    response_model=MoneyJourneyResponse,
+    responses={
+        200: {
+            "description": "Successful calculation",
+            "model": MoneyJourneyResponse
+        },
+        400: {
+            "description": "Validation error",
+            "model": ErrorResponse
+        },
+        500: {
+            "description": "Internal server error",
+            "model": ErrorResponse
+        }
+    }
+)
+def calculate_money_journey(request: MoneyJourneyRequest):
+    """
+    Calculate Money Journey — accumulation phase followed by withdrawal phase.
+    """
+    try:
+        result = compute_money_journey(request)
+        return result
+
+    except ValidationError as e:
+        error_details = []
+        for error in e.errors():
+            error_details.append({
+                "field": ".".join(str(x) for x in error["loc"]),
+                "message": error["msg"]
+            })
+
+        raise HTTPException(
+            status_code=400,
+            detail={
+                "status": "error",
+                "message": "Validation error",
+                "errors": error_details
+            }
+        )
+
+    except Exception as e:
         raise HTTPException(
             status_code=500,
             detail={

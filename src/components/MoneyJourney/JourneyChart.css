@@ -1,0 +1,87 @@
+.journey-chart {
+  background: white;
+  padding: 2rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  margin-bottom: 2rem;
+}
+
+.journey-chart .chart-header {
+  margin-bottom: 2rem;
+}
+
+.journey-chart .chart-header h3 {
+  margin-top: 0;
+  color: #333;
+  font-size: 1.6rem;
+}
+
+.journey-chart .chart-description {
+  color: #666;
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+
+.journey-tooltip {
+  background: white;
+  padding: 1rem;
+  border: 2px solid #ddd;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.journey-tooltip .tooltip-label {
+  font-weight: 700;
+  color: #333;
+  margin: 0 0 0.5rem 0;
+  font-size: 1rem;
+}
+
+.journey-tooltip .tooltip-phase {
+  color: #ff9800;
+  margin: 0.25rem 0;
+  font-size: 0.9rem;
+}
+
+.journey-tooltip .tooltip-balance {
+  color: #667eea;
+  margin: 0.25rem 0;
+  font-size: 0.9rem;
+}
+
+.journey-tooltip .tooltip-amount {
+  color: #4CAF50;
+  margin: 0.25rem 0;
+  font-size: 0.9rem;
+}
+
+.journey-chart .chart-disclaimer {
+  margin-top: 2rem;
+  padding: 1rem;
+  background: #fff8e1;
+  border-left: 4px solid #ffc107;
+  border-radius: 4px;
+}
+
+.journey-chart .chart-disclaimer p {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #666;
+  line-height: 1.5;
+}
+
+@media (max-width: 768px) {
+  .journey-chart {
+    padding: 1.5rem;
+  }
+
+  .journey-chart .chart-header h3 {
+    font-size: 1.4rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .journey-chart {
+    padding: 1rem;
+  }
+}
