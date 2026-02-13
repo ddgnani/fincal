@@ -1,12 +1,12 @@
 # Product Requirements Document (PRD)
-## Investment Growth Calculator App
+## Money Planner App (formerly Investment Growth Calculator)
 
 ---
 
 ## 1. Product Overview
 
 ### 1.1 Vision
-A web-based investment calculator application that helps users understand the power of compound interest and plan their investments. The app will be developed incrementally, one feature at a time, starting with a SIP (Systematic Investment Plan) calculator.
+A web-based investment calculator application ("Money Planner") that helps users understand the power of compound interest and plan their investments. The app features two calculators: a **Growth Calculator** (SIP-based) and a **Money Journey** (full lifecycle with accumulation + withdrawal), accessible via tab navigation.
 
 ### 1.2 Target Audience
 - Individual investors planning systematic investments
@@ -21,7 +21,7 @@ A web-based investment calculator application that helps users understand the po
 
 ---
 
-## 2. Feature 1: SIP Monthly Calculator with Compound Interest
+## 2. Feature 1: Growth Calculator (SIP Monthly Calculator with Compound Interest) ✅ Deployed
 
 ### 2.1 Feature Description
 A calculator that computes the future value of a Systematic Investment Plan (SIP) where users invest a fixed amount monthly, with returns compounded over time.
@@ -328,35 +328,46 @@ class SIPCalculationRequest(BaseModel):
 fincal/
 ├── api/                            # Vercel serverless functions (Python)
 │   ├── __init__.py
-│   ├── calculate_sip.py           # API endpoint as serverless function
+│   ├── calculate_sip.py           # SIP API serverless function
+│   ├── calculate_money_journey.py # Money Journey API serverless function
 │   ├── models/
 │   │   ├── __init__.py
-│   │   └── sip.py                 # Pydantic models
+│   │   ├── sip.py                 # SIP Pydantic models
+│   │   └── money_journey.py       # Money Journey Pydantic models
 │   └── services/
 │       ├── __init__.py
-│       └── sip_calculator.py      # Core calculation logic
+│       ├── sip_calculator.py      # SIP calculation logic
+│       └── money_journey.py       # Money Journey calculation logic
 │
 ├── src/                            # React frontend
 │   ├── components/
-│   │   ├── SIPCalculator/
+│   │   ├── SIPCalculator/         # Growth Calculator tab
 │   │   │   ├── SIPCalculator.jsx
 │   │   │   ├── InputForm.jsx
 │   │   │   ├── ResultsDisplay.jsx
 │   │   │   └── GrowthChart.jsx
-│   │   └── common/
+│   │   └── MoneyJourney/          # Money Journey tab
+│   │       ├── MoneyJourney.jsx
+│   │       ├── AccumulationForm.jsx
+│   │       ├── WithdrawalForm.jsx
+│   │       ├── JourneyResultsDisplay.jsx
+│   │       └── JourneyChart.jsx
 │   ├── services/
-│   │   └── api.js                 # API client
+│   │   └── api.js                 # API client (both endpoints)
 │   ├── utils/
 │   │   └── formatters.js          # Number/currency formatting
-│   ├── App.jsx
+│   ├── App.jsx                    # Tab navigation (Growth Calculator | Money Journey)
 │   └── main.jsx
 │
 ├── public/                         # Static assets
 │
 ├── tests/                          # Backend tests
 │   ├── __init__.py
-│   └── test_sip_calculator.py
+│   ├── test_sip_calculator.py     # 25 tests
+│   └── test_money_journey.py      # 19 tests
 │
+├── docs/
+│   └── PRD.md                     # Product requirements document
 ├── vercel.json                     # Vercel configuration
 ├── requirements.txt                # Python dependencies for serverless functions
 ├── package.json                    # Node dependencies for frontend
@@ -752,8 +763,8 @@ Features to be added in subsequent iterations:
 6. **Mobile App** (React Native)
 7. **Tax Calculations** (capital gains, tax-adjusted returns)
 
-**In Progress / Planned:**
-- **Money Journey Calculator** — Full lifecycle accumulation + withdrawal calculator (see Section 10)
+**Completed:**
+- ~~**Money Journey Calculator**~~ — ✅ Implemented and deployed (see Section 10)
 
 ---
 
@@ -886,7 +897,7 @@ class handler(BaseHTTPRequestHandler):
 
 ---
 
-## 10. Feature 2: Money Journey (Accumulation + Withdrawal Lifecycle)
+## 10. Feature 2: Money Journey (Accumulation + Withdrawal Lifecycle) ✅ Deployed
 
 ### 10.1 Feature Description
 A full lifecycle investment calculator that models two phases:
@@ -915,7 +926,7 @@ Identical to the SIP Calculator (Section 2.2):
 |------------|-------------|-----------|------------|
 | Monthly Withdrawal Amount | Fixed amount to withdraw each month | Number (decimal) | Must be > 0 |
 | Withdrawal Period | Duration of withdrawals in years | Number (integer) | Must be > 0, typically 1-40 years |
-| Withdrawal Return Rate | Annual return rate (%) on remaining balance during withdrawal | Number (decimal) | Must be >= 0; **pre-filled from accumulation return rate**, independently editable |
+| Expected Annual Return Rate | Annual return rate (%) on remaining balance during withdrawal | Number (decimal) | Must be >= 0; **pre-filled from accumulation return rate**, independently editable |
 | Annual Withdrawal Step-Up Rate | Percentage change in monthly withdrawal each year | Number (decimal) | Can be **positive or negative** (e.g., +5% for inflation adjustment, -3% for decreasing spending), optional (default 0) |
 | Withdrawal Step-Up Cap | Maximum monthly withdrawal amount after step-ups | Number (decimal) | Must be > 0, optional (no cap if omitted) |
 
@@ -1158,11 +1169,12 @@ class MoneyJourneyResponse(BaseModel):
 
 ---
 
-**Document Version**: 1.6
+**Document Version**: 1.7
 **Last Updated**: 2026-02-13
-**Status**: All Phases Complete - Deployed to Production
+**Status**: All Features Deployed to Production
 
 ### Changelog:
+- v1.7: Marked Money Journey as deployed; Renamed app to "Money Planner", SIP Calculator tab to "Growth Calculator"; Updated withdrawal return rate label to "Expected Annual Return Rate"; Updated project structure with Money Journey files
 - v1.6: Added Section 10 — Money Journey feature (accumulation + withdrawal lifecycle calculator); Updated future features list; Renumbered Notes & Assumptions to Section 11
 - v1.5: Marked Step-Up SIP and USD formatting as implemented and deployed to production
 - v1.4: Added Step-Up SIP feature (annual contribution increase with optional cap); Updated Sections 2.2, 2.3, 3.3, 3.4, 9; Removed Step-Up SIP from future features; Added USD formatting note
