@@ -8,7 +8,7 @@ import {
   Legend,
   ResponsiveContainer,
 } from 'recharts';
-import { formatCurrency } from '../../utils/formatters';
+import { formatCurrency, formatCompact } from '../../utils/formatters';
 import './GrowthChart.css';
 
 const GrowthChart = ({ yearlyBreakdown, inputs }) => {
@@ -75,7 +75,7 @@ const GrowthChart = ({ yearlyBreakdown, inputs }) => {
           />
           <YAxis
             tick={{ fill: '#666', fontSize: 12 }}
-            tickFormatter={(value) => `$${(value / 1000).toFixed(0)}k`}
+            tickFormatter={formatCompact}
           />
           <Tooltip content={<CustomTooltip />} />
           <Legend

@@ -8,7 +8,7 @@ import {
   ReferenceLine,
   ResponsiveContainer,
 } from 'recharts';
-import { formatCurrency } from '../../utils/formatters';
+import { formatCurrency, formatCompact } from '../../utils/formatters';
 import './JourneyChart.css';
 
 const JourneyChart = ({ yearlyBreakdown, inputs }) => {
@@ -70,7 +70,7 @@ const JourneyChart = ({ yearlyBreakdown, inputs }) => {
           />
           <YAxis
             tick={{ fill: '#666', fontSize: 12 }}
-            tickFormatter={(value) => `$${(value / 1000).toFixed(0)}k`}
+            tickFormatter={formatCompact}
           />
           <Tooltip content={<CustomTooltip />} />
           <ReferenceLine

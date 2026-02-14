@@ -66,3 +66,24 @@ export const parseInputValue = (value) => {
   const num = parseFloat(String(value).replace(/,/g, ''));
   return isNaN(num) ? 0 : num;
 };
+
+/**
+ * Format number in compact form for chart Y-axis ticks.
+ * @param {number} value - The value to format
+ * @returns {string} Compact formatted string (e.g., "$2.5M", "$150K")
+ */
+export const formatCompact = (value) => {
+  const abs = Math.abs(value);
+  const sign = value < 0 ? '-' : '';
+
+  if (abs >= 1_000_000_000) {
+    return `${sign}$${(abs / 1_000_000_000).toFixed(1).replace(/\.0$/, '')}B`;
+  }
+  if (abs >= 1_000_000) {
+    return `${sign}$${(abs / 1_000_000).toFixed(1).replace(/\.0$/, '')}M`;
+  }
+  if (abs >= 1_000) {
+    return `${sign}$${(abs / 1_000).toFixed(0)}K`;
+  }
+  return `${sign}$${abs.toFixed(0)}`;
+};
