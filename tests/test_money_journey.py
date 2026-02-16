@@ -316,16 +316,17 @@ class TestMoneyJourneyValidation:
                 withdrawal_return_rate=8.0,
             )
 
-    def test_zero_monthly_withdrawal(self):
-        with pytest.raises(Exception):
-            MoneyJourneyRequest(
-                monthly_investment=5000,
-                accumulation_years=10,
-                accumulation_return_rate=12.0,
-                monthly_withdrawal=0,
-                withdrawal_years=20,
-                withdrawal_return_rate=8.0,
-            )
+    def test_zero_monthly_withdrawal_allowed(self):
+        """$0 withdrawal is valid — models a passive growth phase."""
+        request = MoneyJourneyRequest(
+            monthly_investment=5000,
+            accumulation_years=10,
+            accumulation_return_rate=12.0,
+            monthly_withdrawal=0,
+            withdrawal_years=20,
+            withdrawal_return_rate=8.0,
+        )
+        assert request.monthly_withdrawal == 0
 
     def test_accumulation_years_too_high(self):
         with pytest.raises(Exception):

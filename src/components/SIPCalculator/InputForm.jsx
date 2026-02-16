@@ -96,45 +96,6 @@ const InputForm = ({ onCalculate, isLoading }) => {
       </div>
 
       <div className="form-group">
-        <label htmlFor="time_period_years">
-          Time Period (Years)
-        </label>
-        <input
-          id="time_period_years"
-          type="number"
-          {...register('time_period_years', {
-            required: 'Time period is required',
-            min: { value: 1, message: 'Must be at least 1 year' },
-            max: { value: 50, message: 'Must be 50 years or less' },
-          })}
-          className={errors.time_period_years ? 'error' : ''}
-        />
-        {errors.time_period_years && (
-          <span className="error-message">{errors.time_period_years.message}</span>
-        )}
-      </div>
-
-      <div className="form-group">
-        <label htmlFor="annual_return_rate">
-          Expected Annual Return Rate (%)
-        </label>
-        <input
-          id="annual_return_rate"
-          type="number"
-          step="0.1"
-          {...register('annual_return_rate', {
-            required: 'Return rate is required',
-            min: { value: 0, message: 'Must be 0 or greater' },
-            max: { value: 100, message: 'Must be 100% or less' },
-          })}
-          className={errors.annual_return_rate ? 'error' : ''}
-        />
-        {errors.annual_return_rate && (
-          <span className="error-message">{errors.annual_return_rate.message}</span>
-        )}
-      </div>
-
-      <div className="form-group">
         <label htmlFor="annual_step_up_rate">
           Annual Step-Up Rate (%) <span className="optional-label">Optional</span>
         </label>
@@ -178,6 +139,45 @@ const InputForm = ({ onCalculate, isLoading }) => {
         />
         {errors.step_up_cap && (
           <span className="error-message">{errors.step_up_cap.message}</span>
+        )}
+      </div>
+
+      <div className="form-group">
+        <label htmlFor="time_period_years">
+          Time Period (Years)
+        </label>
+        <input
+          id="time_period_years"
+          type="number"
+          {...register('time_period_years', {
+            required: 'Time period is required',
+            min: { value: 1, message: 'Must be at least 1 year' },
+            max: { value: 50, message: 'Must be 50 years or less' },
+          })}
+          className={errors.time_period_years ? 'error' : ''}
+        />
+        {errors.time_period_years && (
+          <span className="error-message">{errors.time_period_years.message}</span>
+        )}
+      </div>
+
+      <div className="form-group">
+        <label htmlFor="annual_return_rate">
+          Expected Annual Return Rate (%)
+        </label>
+        <input
+          id="annual_return_rate"
+          type="number"
+          step="0.1"
+          {...register('annual_return_rate', {
+            required: 'Return rate is required',
+            min: { value: 0, message: 'Must be 0 or greater' },
+            max: { value: 100, message: 'Must be 100% or less' },
+          })}
+          className={errors.annual_return_rate ? 'error' : ''}
+        />
+        {errors.annual_return_rate && (
+          <span className="error-message">{errors.annual_return_rate.message}</span>
         )}
       </div>
 

@@ -33,10 +33,10 @@ The calculator will accept the following parameters:
 |------------|-------------|-----------|------------|
 | Initial Investment Amount | One-time lump sum invested at the start | Number (decimal) | Must be >= 0, optional (default 0) |
 | Monthly Investment Amount | Fixed amount to invest each month | Number (decimal) | Must be > 0 |
-| Time Period | Investment duration in years | Number (integer) | Must be > 0, typically 1-50 years |
-| Expected Annual Return Rate | Expected annual interest rate (%) | Number (decimal) | Must be >= 0, typically 1-30% |
 | Annual Step-Up Rate | Percentage increase in monthly contribution each year | Number (decimal) | Must be >= 0, optional (default 0) |
 | Step-Up Contribution Cap | Maximum monthly contribution amount after step-ups | Number (decimal) | Must be > 0, optional (no cap if omitted) |
+| Time Period | Investment duration in years | Number (integer) | Must be > 0, typically 1-50 years |
+| Expected Annual Return Rate | Expected annual interest rate (%) | Number (decimal) | Must be >= 0, typically 1-30% |
 
 **Note**: Compounding frequency is fixed to **annual** for this calculator.
 **Note**: Dollar amounts are displayed in USD format with comma separators (e.g., $1,234,567.89).
@@ -140,6 +140,8 @@ A detailed table showing:
 2. User enters:
    - Initial investment amount (optional)
    - Monthly investment amount
+   - Annual step-up rate (optional)
+   - Step-up contribution cap (optional)
    - Time period (years)
    - Expected annual return rate (%)
 3. User clicks "Calculate" button
@@ -915,22 +917,23 @@ Identical to the SIP Calculator (Section 2.2):
 |------------|-------------|-----------|------------|
 | Initial Investment Amount | One-time lump sum invested at the start | Number (decimal) | Must be >= 0, optional (default 0) |
 | Monthly Investment Amount | Fixed amount to invest each month | Number (decimal) | Must be > 0 |
-| Accumulation Period | Investment duration in years | Number (integer) | Must be > 0, typically 1-50 years |
-| Expected Annual Return Rate | Expected annual interest rate (%) during accumulation | Number (decimal) | Must be >= 0, typically 1-30% |
 | Annual Step-Up Rate | Percentage increase in monthly contribution each year | Number (decimal) | Must be >= 0, optional (default 0) |
 | Step-Up Contribution Cap | Maximum monthly contribution amount after step-ups | Number (decimal) | Must be > 0, optional (no cap if omitted) |
+| Accumulation Period | Investment duration in years | Number (integer) | Must be > 0, typically 1-50 years |
+| Expected Annual Return Rate | Expected annual interest rate (%) during accumulation | Number (decimal) | Must be >= 0, typically 1-30% |
 
 #### Withdrawal Phase Inputs
 
 | Input Field | Description | Data Type | Validation |
 |------------|-------------|-----------|------------|
-| Monthly Withdrawal Amount | Fixed amount to withdraw each month | Number (decimal) | Must be > 0 |
-| Withdrawal Period | Duration of withdrawals in years | Number (integer) | Must be > 0, typically 1-40 years |
-| Expected Annual Return Rate | Annual return rate (%) on remaining balance during withdrawal | Number (decimal) | Must be >= 0; **pre-filled from accumulation return rate**, independently editable |
+| Monthly Withdrawal Amount | Fixed amount to withdraw each month | Number (decimal) | Must be >= 0 (set to $0 for a passive growth phase with no withdrawals) |
 | Annual Withdrawal Step-Up Rate | Percentage change in monthly withdrawal each year | Number (decimal) | Can be **positive or negative** (e.g., +5% for inflation adjustment, -3% for decreasing spending), optional (default 0) |
 | Withdrawal Step-Up Cap | Maximum monthly withdrawal amount after step-ups | Number (decimal) | Must be > 0, optional (no cap if omitted) |
+| Withdrawal Period | Duration of withdrawals in years | Number (integer) | Must be > 0, typically 1-40 years |
+| Expected Annual Return Rate | Annual return rate (%) on remaining balance during withdrawal | Number (decimal) | Must be >= 0; **pre-filled from accumulation return rate**, independently editable |
 
 **Note**: Withdrawal step-up rate allows negative values to model decreasing spending over time.
+**Note**: When Monthly Withdrawal is $0, the withdrawal phase acts as a passive growth period where the corpus continues to compound without any drawdown.
 
 ### 10.3 Calculation Logic
 
@@ -1082,7 +1085,7 @@ A detailed table with columns:
   "errors": [
     {
       "field": "monthly_withdrawal",
-      "message": "Must be greater than 0"
+      "message": "Must be 0 or greater"
     }
   ]
 }
@@ -1100,7 +1103,7 @@ class MoneyJourneyRequest(BaseModel):
     annual_step_up_rate: float = Field(ge=0, default=0)
     step_up_cap: Optional[float] = Field(gt=0, default=None)
     # Withdrawal phase
-    monthly_withdrawal: float = Field(gt=0)
+    monthly_withdrawal: float = Field(ge=0)
     withdrawal_years: int = Field(gt=0, le=50)
     withdrawal_return_rate: float = Field(ge=0, le=100)
     withdrawal_step_up_rate: float = Field(ge=-50, le=100, default=0)
@@ -1122,8 +1125,8 @@ class MoneyJourneyResponse(BaseModel):
 
 ### 10.7 User Flow
 1. User navigates to the **Money Journey** tab
-2. User fills in **Accumulation Phase** inputs (same fields as SIP Calculator)
-3. User fills in **Withdrawal Phase** inputs (monthly withdrawal, period, return rate, optional step-up)
+2. User fills in **Accumulation Phase** inputs: initial investment, monthly investment, step-up rate & cap, accumulation period, return rate
+3. User fills in **Withdrawal Phase** inputs: monthly withdrawal ($0 allowed for passive growth), step-up rate & cap, withdrawal period, return rate
 4. The **Withdrawal Return Rate** is pre-filled from the accumulation return rate but can be edited independently
 5. User clicks "Calculate Journey"
 6. App displays:
@@ -1169,11 +1172,12 @@ class MoneyJourneyResponse(BaseModel):
 
 ---
 
-**Document Version**: 1.7
-**Last Updated**: 2026-02-13
+**Document Version**: 1.8
+**Last Updated**: 2026-02-16
 **Status**: All Features Deployed to Production
 
 ### Changelog:
+- v1.8: Reordered fields on both tabs — step-up rate & cap now appear immediately after monthly investment/withdrawal; Allow $0 monthly withdrawal in Money Journey for passive growth phase; Updated user flows to reflect new field grouping
 - v1.7: Marked Money Journey as deployed; Renamed app to "Money Planner", SIP Calculator tab to "Growth Calculator"; Updated withdrawal return rate label to "Expected Annual Return Rate"; Updated project structure with Money Journey files
 - v1.6: Added Section 10 — Money Journey feature (accumulation + withdrawal lifecycle calculator); Updated future features list; Renumbered Notes & Assumptions to Section 11
 - v1.5: Marked Step-Up SIP and USD formatting as implemented and deployed to production

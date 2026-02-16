@@ -15,7 +15,7 @@ const WithdrawalForm = ({ register, control, errors, accumulationReturnRate }) =
           name="monthly_withdrawal"
           control={control}
           rules={{
-            validate: (v) => parseInputValue(v) > 0 || 'Must be greater than 0',
+            validate: (v) => parseInputValue(v) >= 0 || 'Must be 0 or greater',
           }}
           render={({ field }) => (
             <input
@@ -31,45 +31,6 @@ const WithdrawalForm = ({ register, control, errors, accumulationReturnRate }) =
         />
         {errors.monthly_withdrawal && (
           <span className="error-message">{errors.monthly_withdrawal.message}</span>
-        )}
-      </div>
-
-      <div className="form-group">
-        <label htmlFor="withdrawal_years">
-          Withdrawal Period (Years)
-        </label>
-        <input
-          id="withdrawal_years"
-          type="number"
-          {...register('withdrawal_years', {
-            required: 'Withdrawal period is required',
-            min: { value: 1, message: 'Must be at least 1 year' },
-            max: { value: 50, message: 'Must be 50 years or less' },
-          })}
-          className={errors.withdrawal_years ? 'error' : ''}
-        />
-        {errors.withdrawal_years && (
-          <span className="error-message">{errors.withdrawal_years.message}</span>
-        )}
-      </div>
-
-      <div className="form-group">
-        <label htmlFor="withdrawal_return_rate">
-          Expected Annual Return Rate (%)
-        </label>
-        <input
-          id="withdrawal_return_rate"
-          type="number"
-          step="0.1"
-          {...register('withdrawal_return_rate', {
-            required: 'Return rate is required',
-            min: { value: 0, message: 'Must be 0 or greater' },
-            max: { value: 100, message: 'Must be 100% or less' },
-          })}
-          className={errors.withdrawal_return_rate ? 'error' : ''}
-        />
-        {errors.withdrawal_return_rate && (
-          <span className="error-message">{errors.withdrawal_return_rate.message}</span>
         )}
       </div>
 
@@ -118,6 +79,45 @@ const WithdrawalForm = ({ register, control, errors, accumulationReturnRate }) =
         />
         {errors.withdrawal_step_up_cap && (
           <span className="error-message">{errors.withdrawal_step_up_cap.message}</span>
+        )}
+      </div>
+
+      <div className="form-group">
+        <label htmlFor="withdrawal_years">
+          Withdrawal Period (Years)
+        </label>
+        <input
+          id="withdrawal_years"
+          type="number"
+          {...register('withdrawal_years', {
+            required: 'Withdrawal period is required',
+            min: { value: 1, message: 'Must be at least 1 year' },
+            max: { value: 50, message: 'Must be 50 years or less' },
+          })}
+          className={errors.withdrawal_years ? 'error' : ''}
+        />
+        {errors.withdrawal_years && (
+          <span className="error-message">{errors.withdrawal_years.message}</span>
+        )}
+      </div>
+
+      <div className="form-group">
+        <label htmlFor="withdrawal_return_rate">
+          Expected Annual Return Rate (%)
+        </label>
+        <input
+          id="withdrawal_return_rate"
+          type="number"
+          step="0.1"
+          {...register('withdrawal_return_rate', {
+            required: 'Return rate is required',
+            min: { value: 0, message: 'Must be 0 or greater' },
+            max: { value: 100, message: 'Must be 100% or less' },
+          })}
+          className={errors.withdrawal_return_rate ? 'error' : ''}
+        />
+        {errors.withdrawal_return_rate && (
+          <span className="error-message">{errors.withdrawal_return_rate.message}</span>
         )}
       </div>
     </fieldset>

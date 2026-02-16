@@ -62,45 +62,6 @@ const AccumulationForm = ({ register, control, errors }) => {
       </div>
 
       <div className="form-group">
-        <label htmlFor="accumulation_years">
-          Accumulation Period (Years)
-        </label>
-        <input
-          id="accumulation_years"
-          type="number"
-          {...register('accumulation_years', {
-            required: 'Accumulation period is required',
-            min: { value: 1, message: 'Must be at least 1 year' },
-            max: { value: 50, message: 'Must be 50 years or less' },
-          })}
-          className={errors.accumulation_years ? 'error' : ''}
-        />
-        {errors.accumulation_years && (
-          <span className="error-message">{errors.accumulation_years.message}</span>
-        )}
-      </div>
-
-      <div className="form-group">
-        <label htmlFor="accumulation_return_rate">
-          Expected Annual Return Rate (%)
-        </label>
-        <input
-          id="accumulation_return_rate"
-          type="number"
-          step="0.1"
-          {...register('accumulation_return_rate', {
-            required: 'Return rate is required',
-            min: { value: 0, message: 'Must be 0 or greater' },
-            max: { value: 100, message: 'Must be 100% or less' },
-          })}
-          className={errors.accumulation_return_rate ? 'error' : ''}
-        />
-        {errors.accumulation_return_rate && (
-          <span className="error-message">{errors.accumulation_return_rate.message}</span>
-        )}
-      </div>
-
-      <div className="form-group">
         <label htmlFor="annual_step_up_rate">
           Annual Step-Up Rate (%) <span className="optional-label">Optional</span>
         </label>
@@ -144,6 +105,45 @@ const AccumulationForm = ({ register, control, errors }) => {
         />
         {errors.step_up_cap && (
           <span className="error-message">{errors.step_up_cap.message}</span>
+        )}
+      </div>
+
+      <div className="form-group">
+        <label htmlFor="accumulation_years">
+          Accumulation Period (Years)
+        </label>
+        <input
+          id="accumulation_years"
+          type="number"
+          {...register('accumulation_years', {
+            required: 'Accumulation period is required',
+            min: { value: 1, message: 'Must be at least 1 year' },
+            max: { value: 50, message: 'Must be 50 years or less' },
+          })}
+          className={errors.accumulation_years ? 'error' : ''}
+        />
+        {errors.accumulation_years && (
+          <span className="error-message">{errors.accumulation_years.message}</span>
+        )}
+      </div>
+
+      <div className="form-group">
+        <label htmlFor="accumulation_return_rate">
+          Expected Annual Return Rate (%)
+        </label>
+        <input
+          id="accumulation_return_rate"
+          type="number"
+          step="0.1"
+          {...register('accumulation_return_rate', {
+            required: 'Return rate is required',
+            min: { value: 0, message: 'Must be 0 or greater' },
+            max: { value: 100, message: 'Must be 100% or less' },
+          })}
+          className={errors.accumulation_return_rate ? 'error' : ''}
+        />
+        {errors.accumulation_return_rate && (
+          <span className="error-message">{errors.accumulation_return_rate.message}</span>
         )}
       </div>
     </fieldset>

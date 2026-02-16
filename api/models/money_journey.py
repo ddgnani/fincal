@@ -40,8 +40,8 @@ class MoneyJourneyRequest(BaseModel):
     )
     # Withdrawal phase fields
     monthly_withdrawal: float = Field(
-        gt=0,
-        description="Monthly withdrawal amount (must be greater than 0)"
+        ge=0,
+        description="Monthly withdrawal amount (0 for passive growth phase)"
     )
     withdrawal_years: int = Field(
         gt=0,
